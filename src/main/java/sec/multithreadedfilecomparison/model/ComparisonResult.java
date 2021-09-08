@@ -16,4 +16,9 @@ public class ComparisonResult {
     public double getSimilarity() {
         return similarity;
     }
+
+    @Override
+    public String toString() {
+        return comparisonPair.toString() + ": " + similarity;
+    }
 }

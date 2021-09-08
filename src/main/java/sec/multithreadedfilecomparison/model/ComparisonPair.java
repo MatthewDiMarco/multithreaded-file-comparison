@@ -16,4 +16,9 @@ public class ComparisonPair {
     public String getFile2() {
         return file2;
     }
+
+    @Override
+    public String toString() {
+        return "[" + file1 + ", " + file2 + "]";
+    }
 }

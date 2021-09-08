@@ -11,7 +11,7 @@ import java.util.concurrent.BlockingQueue;
 /**
  * This class's responsibility is to:
  * Scan the given directory tree for all files.
- * Provided the file is not empty, and features one of the user configured suffixes, then
+ * Provided the file is not empty, and it ends in one of the user configured suffixes, then
  * extract the text and submit it to a blocking queue for other threads to access.
  */
 public class FileScanner implements Runnable {
@@ -19,10 +19,10 @@ public class FileScanner implements Runnable {
     private static final String THREAD_NAME = "file-scanner-thread";
     private static final String POISON = new String();
     private static final int QUEUE_CAP = 10;
+    private Thread thread;
     private File directoryPath;
     private Set<String> suffixes;
     private BlockingQueue<String> fileQueue;
-    private Thread thread;
 
     public FileScanner(File directoryPath) {
         this.directoryPath = directoryPath;
@@ -57,44 +57,9 @@ public class FileScanner implements Runnable {
     }
 
     /**
-     * Scan through the directory tree and stop at each file.
-     * If the suffix is ok, extract the contents and push it to the queue.
-     */
-    @Override
-    public void run() {
-        System.out.println("Starting File Scanner... ");
-
-        try {
-            Files.walkFileTree(Paths.get(directoryPath.getPath()), new SimpleFileVisitor<Path>() {
-                @Override
-                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
-                    try {
-                        String[] elements = file.getFileName().toString().split("\\.");
-                        if (elements.length >= 2 && suffixes.contains(elements[1])) { //todo: collapse strings
-                            Thread.sleep(500); // temp
-                            fileQueue.put(readFileContents(file));
-                        }
-
-                    } catch (IOException e) {
-                        System.out.println("File Scanner ERROR: " + e.getMessage());
-
-                    } catch (InterruptedException e) {}
-
-                    return FileVisitResult.CONTINUE;
-                }
-            });
-
-        } catch (IOException e) {
-            System.out.println("File Scanner ERROR: " + e.getMessage());
-        }
-
-        System.out.println("Stopping File Scanner... ");
-    }
-
-    /**
      * Pop's the next item of file contents in the blocking queue.
      * @return File Contents
-     * @throws InterruptedException
+     * @throws InterruptedException Interrupt
      */
     public String getNextFile() throws InterruptedException {
         String fileContents = fileQueue.take();
@@ -109,11 +74,52 @@ public class FileScanner implements Runnable {
      * Read and extract the contents of a file.
      * @param path Target File
      * @return File Contents
-     * @throws IOException
+     * @throws IOException Reading Error
      */
     private String readFileContents(Path path) throws IOException {
         // todo
         System.out.println(path.toString());
         return "Test: " + path.toString();
+    }
+
+    /**
+     * Scan through the directory tree and stop at each file.
+     * If the suffix is ok, extract the contents and push it to the queue.
+     */
+    @Override
+    public void run() {
+        System.out.println("Starting File Scanner... ");
+
+        try {
+            try {
+                Files.walkFileTree(Paths.get(directoryPath.getPath()), new SimpleFileVisitor<Path>() {
+                    @Override
+                    public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
+                        try {
+                            String[] elements = file.getFileName().toString().split("\\.");
+                            if (elements.length >= 2 && suffixes.contains(elements[1])) { //todo: collapse strings
+                                Thread.sleep(500); // temp
+                                fileQueue.put(readFileContents(file));
+                            }
+
+                        } catch (IOException e) {
+                            System.out.println("File Scanner ERROR: " + e.getMessage());
+
+                        } catch (InterruptedException e) {}
+
+                        return FileVisitResult.CONTINUE;
+                    }
+                });
+
+            } catch (IOException e) {
+                System.out.println("File Scanner ERROR: " + e.getMessage());
+
+            } finally {
+                fileQueue.put(POISON);
+            }
+
+        } catch (InterruptedException e) {}
+
+        System.out.println("Stopping File Scanner... ");
     }
 }

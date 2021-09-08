@@ -7,7 +7,9 @@ import javafx.scene.control.*;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
+import sec.multithreadedfilecomparison.controller.Comparator;
 import sec.multithreadedfilecomparison.controller.FileScanner;
+import sec.multithreadedfilecomparison.controller.ResultsLogger;
 import sec.multithreadedfilecomparison.model.ComparisonResult;
 
 import java.io.File;
@@ -19,6 +21,8 @@ public class FileComparisonApplication extends Application {
     private TableView<ComparisonResult> resultTable = new TableView<ComparisonResult>();
     private ProgressBar progressBar = new ProgressBar();
     private FileScanner fileScanner;
+    private Comparator comparator;
+    private ResultsLogger resultsLogger;
 
     @Override
     public void start(Stage stage) throws IOException {
@@ -75,7 +79,7 @@ public class FileComparisonApplication extends Application {
     }
 
     /**
-     * todo
+     * Invoke threads for doing file comparisons.
      * @param stage
      */
     private void crossCompare(Stage stage) {
@@ -84,29 +88,49 @@ public class FileComparisonApplication extends Application {
         dc.setTitle("Choose directory");
         File directory = dc.showDialog(stage);
 
+        // Validate chosen directory
         if (directory != null) {
+            stopComparison();
             System.out.println("Comparing files within " + directory + "...");
 
+            // Create the File Scanner
             Set<String> suffixes = Set.of("txt", "md", "java", "cs", "c", "cpp");
             fileScanner = new FileScanner(directory, suffixes);
             fileScanner.start();
-        }
 
-        // todo
+            // Create the Results Logger
+            resultsLogger = new ResultsLogger("results.csv");
+            resultsLogger.start();
+
+            // Create the Comparator
+            comparator = new Comparator(fileScanner, resultsLogger);
+            comparator.start();
+        }
     }
 
     /**
-     * todo
+     * Stops all threads invoked for file comparison.
      */
     private void stopComparison() {
-        System.out.println("Stopping comparison...");
+        System.out.println("Stopping threads...");
 
+        // Kill the File Scanner
         if (fileScanner != null) {
             fileScanner.stop();
             fileScanner = null;
         }
 
-        // todo
+        // Kill the Results Logger
+        if (resultsLogger != null) {
+            resultsLogger.stop();
+            resultsLogger = null;
+        }
+
+        // Kill the Comparator
+        if (comparator != null) {
+            comparator.stop();
+            comparator = null;
+        }
     }
 
     public static void main(String[] args) {
