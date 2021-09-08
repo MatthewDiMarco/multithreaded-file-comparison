@@ -1,22 +1,16 @@
 package sec.multithreadedfilecomparison.model;
 
 public class ComparisonResult {
-    private final String file1;
-    private final String file2;
+    private final ComparisonPair comparisonPair;
     private final double similarity;
 
-    public ComparisonResult(String file1, String file2, double similarity) {
-        this.file1 = file1;
-        this.file2 = file2;
+    public ComparisonResult(ComparisonPair comparisonPair, double similarity) {
+        this.comparisonPair = comparisonPair;
         this.similarity = similarity;
     }
 
-    public String getFile1() {
-        return file1;
-    }
-
-    public String getFile2() {
-        return file2;
+    public ComparisonPair getComparisonPair() {
+        return comparisonPair;
     }
 
     public double getSimilarity() {

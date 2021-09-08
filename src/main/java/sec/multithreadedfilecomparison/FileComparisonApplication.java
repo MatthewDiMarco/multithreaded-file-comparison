@@ -7,17 +7,18 @@ import javafx.scene.control.*;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
+import sec.multithreadedfilecomparison.controller.FileScanner;
 import sec.multithreadedfilecomparison.model.ComparisonResult;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Set;
 
 public class FileComparisonApplication extends Application {
 
     private TableView<ComparisonResult> resultTable = new TableView<ComparisonResult>();
     private ProgressBar progressBar = new ProgressBar();
+    private FileScanner fileScanner;
 
     @Override
     public void start(Stage stage) throws IOException {
@@ -43,10 +44,10 @@ public class FileComparisonApplication extends Application {
         // The following tells JavaFX how to extract information from a ComparisonResult
         // object and put it into the three table columns.
         file1Col.setCellValueFactory(
-                (cell) -> new SimpleStringProperty(cell.getValue().getFile1()) );
+                (cell) -> new SimpleStringProperty(cell.getValue().getComparisonPair().getFile1()) );
 
         file2Col.setCellValueFactory(
-                (cell) -> new SimpleStringProperty(cell.getValue().getFile2()) );
+                (cell) -> new SimpleStringProperty(cell.getValue().getComparisonPair().getFile2()) );
 
         similarityCol.setCellValueFactory(
                 (cell) -> new SimpleStringProperty(
@@ -73,23 +74,39 @@ public class FileComparisonApplication extends Application {
         stage.show();
     }
 
+    /**
+     * todo
+     * @param stage
+     */
     private void crossCompare(Stage stage) {
         DirectoryChooser dc = new DirectoryChooser();
         dc.setInitialDirectory(new File("."));
         dc.setTitle("Choose directory");
         File directory = dc.showDialog(stage);
 
-        System.out.println("Comparing files within " + directory + "...");
+        if (directory != null) {
+            System.out.println("Comparing files within " + directory + "...");
+
+            Set<String> suffixes = Set.of("txt", "md", "java", "cs", "c", "cpp");
+            fileScanner = new FileScanner(directory, suffixes);
+            fileScanner.start();
+        }
 
         // todo
-        // setup threads
     }
 
+    /**
+     * todo
+     */
     private void stopComparison() {
         System.out.println("Stopping comparison...");
 
+        if (fileScanner != null) {
+            fileScanner.stop();
+            fileScanner = null;
+        }
+
         // todo
-        // interrupt threads
     }
 
     public static void main(String[] args) {
