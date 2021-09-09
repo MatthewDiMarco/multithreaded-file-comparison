@@ -110,7 +110,9 @@ public class FileComparisonApplication extends Application {
             resultTable.getItems().setAll(newResults);
 
             // Create the File Scanner
-            Set<String> suffixes = Set.of("txt", "md", "java", "cs", "c", "cpp");
+            Set<String> suffixes = Set.of(
+                    "txt", "md", "java", "cs", "c", "cpp", "py", "bat", "sh"
+            );
             fileScanner = new FileScanner(directory, suffixes);
             fileScanner.start();
 
