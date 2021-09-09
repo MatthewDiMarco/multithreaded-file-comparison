@@ -117,9 +117,12 @@ public class FileScanner implements Runnable {
                     public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
                         try {
                             String[] elements = file.getFileName().toString().split("\\.");
-                            if (elements.length >= 2 && suffixes.contains(elements[1])) { // todo: collapse strings
-                                fileQueue.put(new FileItem(elements[0], readFileContents(file)));
-                                numFilesInDirectory++;
+                            if (elements.length >= 2 && suffixes.contains(elements[1])) {
+                                String flContents = readFileContents(file); // skip empty files
+                                if (!flContents.isEmpty()) {
+                                    fileQueue.put(new FileItem(elements[0], flContents));
+                                    numFilesInDirectory++;
+                                }
                             }
 
                         } catch (InterruptedException e) {}

@@ -135,7 +135,7 @@ public class Comparator implements Runnable {
             // Notify user
             Platform.runLater(() -> {
                 Alert aa = new Alert(Alert.AlertType.INFORMATION);
-                aa.setContentText("Comparisons completed");
+                aa.setContentText("Comparisons completed. See table for high-similarity results.");
                 aa.show();
             });
 
@@ -176,7 +176,9 @@ public class Comparator implements Runnable {
                     Platform.runLater(() -> {
                         guiJobText.setText(comparisonJobsComplete + "/" + predictedNumJobs + " Comparisons");
                         guiProgressBar.setProgress((double)(comparisonJobsComplete) / (predictedNumJobs));
-                        guiTable.getItems().add(0, comparisonResult);
+                        if (comparisonResult.getSimilarity() > 0.5) {
+                            guiTable.getItems().add(0, comparisonResult);
+                        }
                     });
                 }
 
