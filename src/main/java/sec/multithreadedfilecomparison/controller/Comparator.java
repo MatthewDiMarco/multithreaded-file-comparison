@@ -79,7 +79,7 @@ public class Comparator implements Runnable {
     private List<ComparisonPair> generatePairs(FileItem newFile) {
         List<ComparisonPair> generatedPairs = new ArrayList<ComparisonPair>();
         for (FileItem pastFile : fileHistory) {
-            if (pastFile.equals(newFile)) {
+            if (pastFile == newFile) {
                 throw new IllegalArgumentException(
                         "The provided file already exists in the " +
                         "comparator history; please provide a new file " +
@@ -160,11 +160,11 @@ public class Comparator implements Runnable {
                 synchronized (mutex) {
                     comparisonJobsComplete++;
                     Platform.runLater(() -> {
-                        guiProgressBar.setProgress(
+                        guiProgressBar.setProgress( // todo: fix, not working properly
                                 (double)comparisonJobsComplete /
                                 (fileProducer.getNumFilesInDirectory())
                         );
-                        guiTable.getItems().add(comparisonResult);
+                        guiTable.getItems().add(0, comparisonResult);
                     });
                 }
 

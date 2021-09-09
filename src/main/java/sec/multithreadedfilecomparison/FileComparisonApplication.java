@@ -14,7 +14,9 @@ import sec.multithreadedfilecomparison.model.ComparisonResult;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
@@ -110,7 +112,9 @@ public class FileComparisonApplication extends Application {
             fileScanner.start();
 
             // Create the Results Logger
-            resultsLogger = new ResultsLogger("results.csv");
+            Date date = new Date();
+            SimpleDateFormat formatter = new SimpleDateFormat("ddMMyyyyHHmmss");
+            resultsLogger = new ResultsLogger("results-" + formatter.format(date) + ".csv");
             resultsLogger.start();
 
             // Create the Comparator

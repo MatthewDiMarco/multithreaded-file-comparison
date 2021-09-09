@@ -2,6 +2,9 @@ package sec.multithreadedfilecomparison.controller;
 
 import sec.multithreadedfilecomparison.model.ComparisonResult;
 
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
@@ -51,6 +54,24 @@ public class ResultsLogger implements Runnable {
         resultsQueue.put(comparisonResult);
     }
 
+    private void writeComparisonResult(ComparisonResult cr) {
+        try {
+            FileWriter fileWriter = new FileWriter(outputFileName, true);
+            PrintWriter pw = new PrintWriter(fileWriter);
+
+            // Print a new record as 'file1,file2,%'
+            pw.print(
+                    cr.getComparisonPair().getFile1Name() + "," +
+                    cr.getComparisonPair().getFile2Name() + "," +
+                    cr.getSimilarity() + "\n"
+            );
+            pw.close();
+
+        } catch (IOException e) {
+            System.out.println("Result Logger ERROR: " + e.getMessage());
+        }
+    }
+
     /**
      * Keep checking the queue for any new results to write.
      * This task continues until interrupted.
@@ -62,9 +83,8 @@ public class ResultsLogger implements Runnable {
         try {
             boolean running = true;
             while (running) {
-                ComparisonResult cr = resultsQueue.take();
-                System.out.println("Results Logger: " + cr.toString());
-                // todo
+                ComparisonResult cr = resultsQueue.take(); // wait...
+                writeComparisonResult(cr);
             }
 
         } catch (InterruptedException e) { /*Thread Finished*/ }
