@@ -14,6 +14,8 @@ import sec.multithreadedfilecomparison.model.ComparisonResult;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 public class FileComparisonApplication extends Application {
@@ -32,11 +34,13 @@ public class FileComparisonApplication extends Application {
         // Create toolbar
         Button compareBtn = new Button("Compare...");
         Button stopBtn = new Button("Stop");
-        ToolBar toolBar = new ToolBar(compareBtn, stopBtn);
+        Button clearBtn = new Button("Clear");
+        ToolBar toolBar = new ToolBar(compareBtn, stopBtn, clearBtn);
 
         // Set up button event handlers
         compareBtn.setOnAction(event -> crossCompare(stage));
         stopBtn.setOnAction(event -> stopComparison());
+        clearBtn.setOnAction(event -> clearView());
 
         // Initialise progressbar
         progressBar.setProgress(0.0);
@@ -48,10 +52,10 @@ public class FileComparisonApplication extends Application {
         // The following tells JavaFX how to extract information from a ComparisonResult
         // object and put it into the three table columns.
         file1Col.setCellValueFactory(
-                (cell) -> new SimpleStringProperty(cell.getValue().getComparisonPair().getFile1()) );
+                (cell) -> new SimpleStringProperty(cell.getValue().getComparisonPair().getFile1Name()) );
 
         file2Col.setCellValueFactory(
-                (cell) -> new SimpleStringProperty(cell.getValue().getComparisonPair().getFile2()) );
+                (cell) -> new SimpleStringProperty(cell.getValue().getComparisonPair().getFile2Name()) );
 
         similarityCol.setCellValueFactory(
                 (cell) -> new SimpleStringProperty(
@@ -80,7 +84,7 @@ public class FileComparisonApplication extends Application {
 
     /**
      * Invoke threads for doing file comparisons.
-     * @param stage
+     * @param stage Stage
      */
     private void crossCompare(Stage stage) {
         DirectoryChooser dc = new DirectoryChooser();
@@ -90,8 +94,15 @@ public class FileComparisonApplication extends Application {
 
         // Validate chosen directory
         if (directory != null) {
+
+            // Reset
+            clearView();
             stopComparison();
             System.out.println("Comparing files within " + directory + "...");
+
+            // Init table list of comparison results and point GUI at it
+            List<ComparisonResult> newResults = new ArrayList<ComparisonResult>();
+            resultTable.getItems().setAll(newResults);
 
             // Create the File Scanner
             Set<String> suffixes = Set.of("txt", "md", "java", "cs", "c", "cpp");
@@ -103,7 +114,12 @@ public class FileComparisonApplication extends Application {
             resultsLogger.start();
 
             // Create the Comparator
-            comparator = new Comparator(fileScanner, resultsLogger);
+            comparator = new Comparator(
+                    fileScanner,
+                    resultsLogger,
+                    progressBar,
+                    resultTable
+            );
             comparator.start();
         }
     }
@@ -116,21 +132,35 @@ public class FileComparisonApplication extends Application {
 
         // Kill the File Scanner
         if (fileScanner != null) {
-            fileScanner.stop();
+            try {
+                fileScanner.stop();
+            } catch (IllegalStateException e) {}
             fileScanner = null;
         }
 
         // Kill the Results Logger
         if (resultsLogger != null) {
-            resultsLogger.stop();
+            try {
+                resultsLogger.stop();
+            } catch (IllegalStateException e) {}
             resultsLogger = null;
         }
 
         // Kill the Comparator
         if (comparator != null) {
-            comparator.stop();
+            try {
+                comparator.stop();
+            } catch (IllegalStateException e) {}
             comparator = null;
         }
+    }
+
+    /**
+     * Reset the view.
+     */
+    private void clearView() {
+        progressBar.setProgress(0.0);
+        resultTable.getItems().clear();
     }
 
     public static void main(String[] args) {
