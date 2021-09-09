@@ -5,6 +5,7 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.text.Text;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 import sec.multithreadedfilecomparison.controller.Comparator;
@@ -24,6 +25,7 @@ public class FileComparisonApplication extends Application {
 
     private TableView<ComparisonResult> resultTable = new TableView<ComparisonResult>();
     private ProgressBar progressBar = new ProgressBar();
+    private Text jobText = new Text("0/0 Comparisons");
     private FileScanner fileScanner;
     private Comparator comparator;
     private ResultsLogger resultsLogger;
@@ -37,7 +39,7 @@ public class FileComparisonApplication extends Application {
         Button compareBtn = new Button("Compare...");
         Button stopBtn = new Button("Stop");
         Button clearBtn = new Button("Clear");
-        ToolBar toolBar = new ToolBar(compareBtn, stopBtn, clearBtn);
+        ToolBar toolBar = new ToolBar(compareBtn, new Separator(), stopBtn, clearBtn);
 
         // Set up button event handlers
         compareBtn.setOnAction(event -> crossCompare(stage));
@@ -46,6 +48,7 @@ public class FileComparisonApplication extends Application {
 
         // Initialise progressbar
         progressBar.setProgress(0.0);
+        ToolBar bottomBar = new ToolBar(progressBar, jobText);
 
         TableColumn<ComparisonResult,String> file1Col = new TableColumn<>("File 1");
         TableColumn<ComparisonResult,String> file2Col = new TableColumn<>("File 2");
@@ -77,7 +80,7 @@ public class FileComparisonApplication extends Application {
         BorderPane mainBox = new BorderPane();
         mainBox.setTop(toolBar);
         mainBox.setCenter(resultTable);
-        mainBox.setBottom(progressBar);
+        mainBox.setBottom(bottomBar);
         Scene scene = new Scene(mainBox);
         stage.setScene(scene);
         stage.sizeToScene();
@@ -122,6 +125,7 @@ public class FileComparisonApplication extends Application {
                     fileScanner,
                     resultsLogger,
                     progressBar,
+                    jobText,
                     resultTable
             );
             comparator.start();
@@ -164,6 +168,7 @@ public class FileComparisonApplication extends Application {
      */
     private void clearView() {
         progressBar.setProgress(0.0);
+        jobText.setText("0/0 Comparisons");
         resultTable.getItems().clear();
     }
 

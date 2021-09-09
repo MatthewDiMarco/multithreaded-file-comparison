@@ -1,8 +1,10 @@
 package sec.multithreadedfilecomparison.controller;
 
 import javafx.application.Platform;
+import javafx.scene.control.Alert;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.TableView;
+import javafx.scene.text.Text;
 import sec.multithreadedfilecomparison.helper.Helpers;
 import sec.multithreadedfilecomparison.model.ComparisonPair;
 import sec.multithreadedfilecomparison.model.ComparisonResult;
@@ -31,6 +33,7 @@ public class Comparator implements Runnable {
     private FileScanner fileProducer;
     private ResultsLogger logger;
     private ProgressBar guiProgressBar;
+    private Text guiJobText;
     private TableView<ComparisonResult> guiTable;
     private ExecutorService exService;
     private int comparisonJobsComplete;
@@ -39,12 +42,14 @@ public class Comparator implements Runnable {
             FileScanner producer,
             ResultsLogger logger,
             ProgressBar guiProgressBar,
+            Text guiJobText,
             TableView<ComparisonResult> guiTable
     ) {
         this.fileHistory = new ArrayList<FileItem>();
         this.fileProducer = producer;
         this.logger = logger;
         this.guiProgressBar = guiProgressBar;
+        this.guiJobText = guiJobText;
         this.guiTable = guiTable;
         this.mutex = new Object();
         this.exService = null;
@@ -127,6 +132,13 @@ public class Comparator implements Runnable {
             // Stop the Logger
             logger.stop();
 
+            // Notify user
+            Platform.runLater(() -> {
+                Alert aa = new Alert(Alert.AlertType.INFORMATION);
+                aa.setContentText("Comparisons completed");
+                aa.show();
+            });
+
         } catch (InterruptedException e) {
             exService.shutdownNow(); // prematurely shutdown all comparison jobs
         }
@@ -159,11 +171,11 @@ public class Comparator implements Runnable {
                 // Update GUI
                 synchronized (mutex) {
                     comparisonJobsComplete++;
+                    int nFiles = fileProducer.getNumFilesInDirectory();
+                    int predictedNumJobs = (int)(0.5 * (Math.pow(nFiles, 2) - nFiles));
                     Platform.runLater(() -> {
-                        guiProgressBar.setProgress( // todo: fix, not working properly
-                                (double)comparisonJobsComplete /
-                                (fileProducer.getNumFilesInDirectory())
-                        );
+                        guiJobText.setText(comparisonJobsComplete + "/" + predictedNumJobs + " Comparisons");
+                        guiProgressBar.setProgress((double)(comparisonJobsComplete) / (predictedNumJobs));
                         guiTable.getItems().add(0, comparisonResult);
                     });
                 }

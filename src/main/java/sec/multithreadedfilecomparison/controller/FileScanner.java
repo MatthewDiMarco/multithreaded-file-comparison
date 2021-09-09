@@ -115,13 +115,11 @@ public class FileScanner implements Runnable {
                 Files.walkFileTree(Paths.get(directoryPath.getPath()), new SimpleFileVisitor<Path>() {
                     @Override
                     public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
-                        if (!new File(String.valueOf(file)).isDirectory()) {
-                            numFilesInDirectory++;
-                        }
                         try {
                             String[] elements = file.getFileName().toString().split("\\.");
                             if (elements.length >= 2 && suffixes.contains(elements[1])) { // todo: collapse strings
                                 fileQueue.put(new FileItem(elements[0], readFileContents(file)));
+                                numFilesInDirectory++;
                             }
 
                         } catch (InterruptedException e) {}
