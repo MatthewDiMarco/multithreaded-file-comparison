@@ -24,7 +24,7 @@ tasks.withType(JavaCompile) {
 
 application {
     mainModule = 'sec.multithreadedfilecomparison'
-    mainClass = 'sec.multithreadedfilecomparison.HelloApplication'
+    mainClass = 'sec.multithreadedfilecomparison.FileComparisonApplication'
 }
 
 javafx {
