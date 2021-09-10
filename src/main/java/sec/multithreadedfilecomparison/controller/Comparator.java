@@ -159,10 +159,17 @@ public class Comparator implements Runnable {
             System.out.println("Start Comparison Job");
 
             try {
-                double sim = Helpers.calcSimilarity(
-                        comparisonPair.getFile1Content(),
-                        comparisonPair.getFile2Content()
-                );
+                double sim;
+                try {
+                    sim = Helpers.calcSimilarity(
+                            comparisonPair.getFile1Content(),
+                            comparisonPair.getFile2Content()
+                    );
+
+                } catch (OutOfMemoryError e) {
+                    System.out.println("Comparison Job ERROR: *OUT OF MEMORY*");
+                    sim = -1.0;
+                }
 
                 // Log results
                 ComparisonResult comparisonResult = new ComparisonResult(comparisonPair, sim);
@@ -171,16 +178,17 @@ public class Comparator implements Runnable {
                 // Update GUI
                 synchronized (mutex) {
                     comparisonJobsComplete++;
-                    int nFiles = fileProducer.getNumFilesInDirectory();
-                    int predictedNumJobs = (int)(0.5 * (Math.pow(nFiles, 2) - nFiles));
-                    Platform.runLater(() -> {
-                        guiJobText.setText(comparisonJobsComplete + "/" + predictedNumJobs + " Comparisons");
-                        guiProgressBar.setProgress((double)(comparisonJobsComplete) / (predictedNumJobs));
-                        if (comparisonResult.getSimilarity() > 0.5) {
-                            guiTable.getItems().add(0, comparisonResult);
-                        }
-                    });
                 }
+
+                int nFiles = fileProducer.getNumFilesInDirectory();
+                int predictedNumJobs = (int)(0.5 * (Math.pow(nFiles, 2) - nFiles));
+                Platform.runLater(() -> {
+                    guiJobText.setText(comparisonJobsComplete + "/" + predictedNumJobs + " Comparisons");
+                    guiProgressBar.setProgress((double)(comparisonJobsComplete) / (predictedNumJobs));
+                    if (comparisonResult.getSimilarity() > 0.5) {
+                        guiTable.getItems().add(0, comparisonResult);
+                    }
+                });
 
             } catch (InterruptedException e) { /*Thread Finished*/ }
 
