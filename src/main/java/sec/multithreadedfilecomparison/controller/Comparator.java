@@ -26,7 +26,7 @@ import java.util.concurrent.TimeUnit;
 public class Comparator implements Runnable {
 
     private static final String THREAD_NAME = "comparator-thread";
-    private static final int NUM_COMPARISON_THREADS = 4;
+    private static final int NUM_COMPARISON_THREADS = 8;
     private Thread thread;
     private Object mutex;
     private List<FileItem> fileHistory;
