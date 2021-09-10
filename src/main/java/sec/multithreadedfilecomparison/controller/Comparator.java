@@ -129,9 +129,6 @@ public class Comparator implements Runnable {
             exService.shutdown();
             exService.awaitTermination(1, TimeUnit.HOURS);
 
-            // Stop the Logger
-            logger.stop();
-
             // Notify user
             Platform.runLater(() -> {
                 Alert aa = new Alert(Alert.AlertType.INFORMATION);
